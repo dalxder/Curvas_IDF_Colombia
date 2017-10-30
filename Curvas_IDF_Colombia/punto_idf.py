@@ -211,11 +211,10 @@ class coeficientesIDF:
 
 
     def crearHTML(self):
-        anTr=("c","e","f","m")
+        anTr=("C1","X0","C2")
         layer=self.layer.pinLayer
         fields = layer.pendingFields()
         field_names = tuple([field.name() for field in fields])
-        #field_names[1]="Punto (E,N)\nEPSG:3116"
 
 
         datos=[]
@@ -236,44 +235,20 @@ class coeficientesIDF:
 
         #style="background-color:red"<col style="background-color:yellow">
         colgrup='<colgroup><col span="1"  width="50"><col span="%i"  width="150"> </colgroup>'%(len(field_names)-1)
-        tableHeader=('<th rowspan="2" >%s</th>'*len(field_names[0:2]))%("Id","Punto (E,N)\nEPSG:3116")#+('<th colspan="3">%s</th>'*4)%tuple(headerTR)
-        headerCoef=('<th>%s</th>'*4)%("c","e","f","m")
+        tableHeader=('<th rowspan="2" >%s</th>'*len(field_names[0:2]))%("Id","Punto (E,N)\nEPSG:4326")#+('<th colspan="3">%s</th>'*4)%tuple(headerTR)
+        headerCoef=('<th>%s</th>'*4)%anTr
         #
         tabla="""<table>%s
-        <CAPTION><EM>Tabla coeficientes ecuación IDF</EM></CAPTION>
+        <CAPTION><EM>Coeficientes de ecuacion </EM></CAPTION>
           <tr>%s</tr><tr>%s</tr>
           %s
         </table>""".decode('utf-8')%(colgrup,tableHeader,headerCoef,datos)
 
-        stile="""table {border-collapse: collapse;}
-                    table, td, th {border: 2px solid black;}
-                  div {display: block;page-break-after:auto;}
-                  body {margin-left: 80;margin-top: 100;margin-right: 80;margin-bottom: 100;}
-                td {font-family: Arial, Helvetica, sans-serif;font-size: 11px; text-align: center;}
-                th {font-family: Arial, Helvetica, sans-serif;font-size: 12px;}
-                  """#.footer { position: fixed; bottom: 100px; }.pagenum:before { content: counter(page); } p { display: block;}
+        stile="""
+                  """
 
-        tempHtml="""<html><head><style>%s</style><head>
-        <body><div>
-        <p><b>Fecha: %s </b></p>
-        <p align=center> <img src="acueducto.png"/></p>
-        <p><i>&nbsp;</i></p><p align=center><b>Ecuación cálculo curvas IDF</b></p>
-        <p align=center>   <img src="ecuacionIDF.png"/></p>
-
-        %s
-        <p>%s</p>
-        <p><i>&nbsp;</i></p>
-        <p><b>NOTAS:</b></p>
-        <p>1) Unidades en la aplicación de la ecuación IDF: Intensidad I[mm/h], Duración D[min], Periodo de Retorno T[años]</p>
-        <p>2) Coeficientes de la ecuación IDF: c, e, f, m.</p>
-        <p>3) Sistema de Referencia de Coordenadas: MAGNA-SIRGAS / Zona Bogotá Colombia, EPSG 3116.</p>
-        <p><i>&nbsp;</i></p>
-        <p><i>&nbsp;</i></p>
-        <p><i>&nbsp;</i></p>
-        <p><i>&nbsp;</i></p>
-        <p>Responsable EAB:__________________________________</p>
-
-        </div></body></html>""".decode('utf-8')%(stile,str(dt.datetime.now().date()),tabla,type(attrs))
+        tempHtml=""" Falta editar esta sección\nFecha de reporte %s
+        """.decode('utf-8')%(str(dt.datetime.now().date()))
 
 
             #<div class="footer">paginas: <span class="pagenum"></span></div>
