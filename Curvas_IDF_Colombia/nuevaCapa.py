@@ -4,7 +4,9 @@ from PyQt4.QtCore import QObject,SIGNAL
 from qgis.gui import *
 from qgis.core import *
 import numpy as np
-
+import matplotlib.pyplot as plt
+import os
+import shutil
 class crearLayer:
     def __init__(self):
         """Constructor."""
@@ -34,6 +36,11 @@ class crearLayer:
         QObject.connect(self.pinLayer, SIGNAL("layerDeleted()"), self.layer_deleted)
         self.have_layer = True
         self.datosCalculo=[]
+
+
+        for root, dirs, files in os.walk(os.path.dirname(__file__)+'\\static\\'):
+            for f in files:
+                os.unlink(os.path.join(os.path.dirname(__file__)+'\\static\\', f))
     def layer_deleted(self):
       self.have_layer = False
       self.datosCalculo=None
@@ -67,7 +74,35 @@ def objectDistance():
     distance.setEllipsoidalMode(True)
     distance.setEllipsoid('WGS84')
     return distance
+def graficas(ident,valores):
 
+    def peval(coeficientes,D):
+        C1,X0,C2=coeficientes
+        return np.array(C1/((D+X0)**C2))
+    def residuals(coeficientes, y, D):
+        err=y-peval(coeficientes,D)
+        return err
+
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.grid(True)
+    ax.minorticks_on()
+
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.9, box.height])
+
+    x = np.linspace(15, 360)
+
+    # Plot the lines y=x**n for n=1..4.
+    tr=[2,3,5,10,25,50,100]
+    for i, val in enumerate(valores):
+        C1,X0,C2=val.split(",")
+        ax.plot(x, peval([float(C1),float(X0),float(C2)],x), label="{0}".format(tr[i])+" años".decode("utf-8"))
+    ax.legend(loc="center left", bbox_to_anchor=[1, 0.5],
+               title="TR", fontsize=10)
+    ax.text(0.8, 0.9,r'$I=\frac{C1}{(D+X0)^{C2}}$', ha='center', va='center', transform=ax.transAxes, fontsize=18)
+    fig.savefig(os.path.dirname(__file__)+'\\static\\%s.png'%("curva"+str(ident-1)),fmt='png',dpi=200)
+    fig=None
 def addFeatureLayer(provider,layer,point,desc,valores):
     """
     Esta función agrega items a la capa de almacenamiento.
@@ -84,6 +119,8 @@ def addFeatureLayer(provider,layer,point,desc,valores):
     layer.setCacheImage(None)
     layer.triggerRepaint()
 
+    graficas(int(provider.featureCount()),valores)
+
 
 def dentrodeColombia(punto,polColombia):
     # Esta función comprueba que el punto se encuentra dentro de Colombia
@@ -93,3 +130,4 @@ def dentrodeColombia(punto,polColombia):
             enCol=True
 
     return enCol
+        #funciones requeridas en la regresión

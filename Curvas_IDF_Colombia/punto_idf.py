@@ -253,7 +253,7 @@ class coeficientesIDF:
         tret=[2,3,5,10,25,50,100]
         for i,feature in enumerate(layer.getFeatures()):
             tablaCoef=""
-            datos+='<img src="F:\\semivariogram_model2.png" alt="Smiley face" width="800">'
+            datos+='<img src="%s\\curva%i.png" alt="Smiley face" width="800">'%(self.plugin_dir+'\\static',i)
             for j, att in enumerate(feature.attributes()[2:]):
                 tablaCoef+='<tr>'+('<td>%s</td>'*4)%tuple([str(tret[j])]+att.split(","))+'</tr>'
             datosCalculo,cantEsta,distMax,potencia=self.layer.datosCalculo[i]
@@ -305,6 +305,7 @@ class coeficientesIDF:
             self.crearHTML()
             dialog = QPrintPreviewDialog()
             dialog.paintRequested.connect(self.editor.print_)#
+            dialog.paintRequested.connect(self.editor.print_)
             dialog.exec_()
         else:
             QMessageBox.information(None,"Atención".decode("utf-8"), "No ha seleccionado ningún punto".decode("utf-8"))#self.iface.mainWindow()

@@ -32,4 +32,5 @@ for n in range(1, 5):
 ax.legend(loc="center left", bbox_to_anchor=[1, 0.5],
            title="TR", fontsize=10)
 ax.text(0.8, 0.9,r'$I=\frac{C1}{(D+X0)^{C2}}$', ha='center', va='center', transform=ax.transAxes, fontsize=18)
-savefig('F:\\semivariogram_model2.png',fmt='png',dpi=200)
+
+fig.savefig('F:\\semivariogram_model2.png',fmt='png',dpi=200)
