@@ -211,52 +211,95 @@ class coeficientesIDF:
 
 
     def crearHTML(self):
-        anTr=("C1","X0","C2")
+
         layer=self.layer.pinLayer
         fields = layer.pendingFields()
-        field_names = tuple([field.name() for field in fields])
 
 
-        datos=[]
-        for feature in layer.getFeatures():
-            attrs =('<td>%i</td>'+'<td>%s</td>'+'<td>%.2f</td>'+'<td>%.6f</td>'*3)%tuple(feature.attributes())
-            datos.append('<tr>%s<tr>'%attrs)
+        tempCoef="""
+        <table>
+    		<thead>
+    		    <tr>
+    		      <th>Tr (años)</th>
+    		      <th>C1</th>
+    		      <th>X0</th>
+    		      <th>C2</th>
+    		    </tr>
+    		</thead>
+    		<tbody>
+			%s
+		 </tbody>
+	   </table>""".decode("utf-8")
+        tempTecnicos="""
+        	<h2>Datos técnicos</h2>
+        	<p>Número máximo de estaciones: %s</p>
+            <p>Distancia máxima: %s km</p>
+            <p>Potencia de la ponderación: %s</p>
+        	<table>
+        		<thead>
+        		    <tr>
+        		      <th>Nombre</th>
+        		      <th>Distancia (m)</th>
+        		    </tr>
+        		</thead>
+        		<tbody>
+    			     %s
+	            </tbody>
+             </table>
 
-        datos="".join(datos)
+        """.decode("utf-8")
+
+        datos=""
+        tret=[2,3,5,10,25,50,100]
+        for i,feature in enumerate(layer.getFeatures()):
+            tablaCoef=""
+            datos+='<img src="F:\\semivariogram_model2.png" alt="Smiley face" width="800">'
+            for j, att in enumerate(feature.attributes()[2:]):
+                tablaCoef+='<tr>'+('<td>%s</td>'*4)%tuple([str(tret[j])]+att.split(","))+'</tr>'
+            datosCalculo,cantEsta,distMax,potencia=self.layer.datosCalculo[i]
+            dataDist=''
+            for d in datosCalculo:
+                dataDist+='<tr>'+('<td>%s</td><td>%.f</td>')%tuple(d)+'</tr>'
+            if distMax!=None:
+                distMax=distMax/1000
+
+            datos+=tempCoef%tablaCoef
+            datos+=tempTecnicos%(str(cantEsta),str(distMax),str(potencia),dataDist)
 
 
 
-        headerTR=[]
-        for i,an in enumerate(anTr):
-            headerTR.append("Tiempo de retorno %s años".decode("utf-8")%an)
+
+        style="""table {border-collapse: collapse;}
+                    table, td, th {border: 2px solid black;}
+                  div {display: block;page-break-after:auto;}
+                  body {margin-left: 80;margin-top: 100;margin-right: 80;margin-bottom: 100;}
+                td {font-family: Arial, Helvetica, sans-serif;font-size: 11px; text-align: center;}
+                th {font-family: Arial, Helvetica, sans-serif;font-size: 12px;}"""
+        tempHtml="""<!DOCTYPE html>
+            <html>
+            <head>
+            	<title>Curvas intensidad, duración y frecuencia Colombia</title>
+            	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+                <style>%s</style>
+            </head>
+            <body>
+                <h1>Reporte curvas IDF</h1>
+                %s
+            </body>
+            </html>""".decode('utf-8')%(style,datos)
 
 
-        #etiqueta1=(str([]*len(anTr))%anTr).split(",")
-
-        #style="background-color:red"<col style="background-color:yellow">
-        colgrup='<colgroup><col span="1"  width="50"><col span="%i"  width="150"> </colgroup>'%(len(field_names)-1)
-        tableHeader=('<th rowspan="2" >%s</th>'*len(field_names[0:2]))%("Id","Punto (E,N)\nEPSG:4326")#+('<th colspan="3">%s</th>'*4)%tuple(headerTR)
-        headerCoef=('<th>%s</th>'*4)%anTr
-        #
-        tabla="""<table>%s
-        <CAPTION><EM>Coeficientes de ecuacion </EM></CAPTION>
-          <tr>%s</tr><tr>%s</tr>
-          %s
-        </table>""".decode('utf-8')%(colgrup,tableHeader,headerCoef,datos)
-
-        stile="""
-                  """
-
-        tempHtml=""" Falta editar esta sección\nFecha de reporte %s
-        """.decode('utf-8')%(str(dt.datetime.now().date()))
 
 
-            #<div class="footer">paginas: <span class="pagenum"></span></div>
+            #<div class="footer">paginas: <span class="pagenum"></span></div>stile,str(dt.datetime.now().date()),tabla,type(attrs)
 
-        pyDir = os.path.abspath(os.path.dirname(__file__))
-        baseUrl = QUrl.fromLocalFile(os.path.join(pyDir, "static/"))
+        #baseUrl = QUrl.fromLocalFile(os.path.join(self.plugin_dir+"/static", "css"))
 
-        self.editor.setHtml(tempHtml, baseUrl)
+        self.editor.setHtml(tempHtml)
+        """
+        with open(self.plugin_dir+"/static/reporte.html","w")as fileHtml:
+            fileHtml.write(tempHtml.encode("utf-8"))
+        """
     def printResultado(self):
         if self.layer.have_layer!= False and int(self.layer.provider.featureCount())>0:
             self.crearHTML()
@@ -327,7 +370,7 @@ class coeficientesIDF:
             valores.append("%.3f,%.3f,%.3f"%tuple(plsq[0]))
         for numEst in idOrden:
             nombre=self.geojson["features"][numEst]["properties"]["name"]
-            datosCalculo.append([nombre,distancias[numEst],cantEsta,distMax,potencia])
+            datosCalculo.append([nombre,distancias[numEst]])
         return valores,datosCalculo
 
 
@@ -340,7 +383,7 @@ class coeficientesIDF:
         if dentrodeColombia(punto,self.polColombia):
             cantEsta=None
             distMax=None
-            potencia=1
+
             px=float(punto.x())
             py=float(punto.y())
             ok = True
@@ -375,7 +418,7 @@ class coeficientesIDF:
                 if ok:
                     valores,datosCalculo=self.calCoeficientes(punto,cantEsta,distMax,potencia)
                     if len(valores)>0:
-                        self.layer.datosCalculo.append(datosCalculo)
+                        self.layer.datosCalculo.append([datosCalculo,cantEsta,distMax,potencia])
                         addFeatureLayer(self.layer.provider,self.layer.pinLayer,punto,desc,valores)
 
         else:
@@ -387,7 +430,7 @@ class coeficientesIDF:
     def consultaLista(self):
         cantEsta=None
         distMax=None
-        potencia=1
+
         ok = True
         self.dlg2.hide() # bloque la ventana principal
         # self.dlg2.show() no bloque la ventana principal
@@ -437,7 +480,7 @@ class coeficientesIDF:
                                 if ok:
                                     valores,datosCalculo=self.calCoeficientes(punto,cantEsta,distMax,potencia)
                                     if len(valores)>0:
-                                        self.layer.datosCalculo.append(datosCalculo)
+                                        self.layer.datosCalculo.append([datosCalculo,cantEsta,distMax,potencia])
                                         addFeatureLayer(self.layer.provider,self.layer.pinLayer,punto,desc,valores)
                             else:
                                 noHallados+="%f,%f\n"%(px,py)
