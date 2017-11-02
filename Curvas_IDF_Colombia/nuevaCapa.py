@@ -38,9 +38,9 @@ class crearLayer:
         self.datosCalculo=[]
 
 
-        for root, dirs, files in os.walk(os.path.dirname(__file__)+'\\static\\'):
+        for root, dirs, files in os.walk(os.path.dirname(__file__)+r'/static/'):
             for f in files:
-                os.unlink(os.path.join(os.path.dirname(__file__)+'\\static\\', f))
+                os.unlink(os.path.join(os.path.dirname(__file__)+r'/static/', f))
     def layer_deleted(self):
       self.have_layer = False
       self.datosCalculo=None
@@ -101,7 +101,7 @@ def graficas(ident,valores):
     ax.legend(loc="center left", bbox_to_anchor=[1, 0.5],
                title="TR", fontsize=10)
     ax.text(0.8, 0.9,r'$I=\frac{C1}{(D+X0)^{C2}}$', ha='center', va='center', transform=ax.transAxes, fontsize=18)
-    fig.savefig(os.path.dirname(__file__)+'\\static\\%s.png'%("curva"+str(ident-1)),fmt='png',dpi=200)
+    fig.savefig(os.path.dirname(__file__)+r'/static/%s.png'%("curva"+str(ident-1)),fmt='png',dpi=200)
     fig=None
 def addFeatureLayer(provider,layer,point,desc,valores):
     """

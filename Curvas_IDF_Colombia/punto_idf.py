@@ -170,10 +170,10 @@ class coeficientesIDF:
 
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
         result = QObject.connect(self.captureCoor, SIGNAL("canvasClicked(const QgsPoint &, Qt::MouseButton)"), self.consultaPuntual)
-        iconPunto = self.plugin_dir+'\\icon\\iconPunto.png'
-        iconLC=self.plugin_dir+'\\icon\\iconLC.png'
-        iconPrint = self.plugin_dir+'\\icon\\print.png'
-        iconPDF= self.plugin_dir+'\\icon\\pdf.png'
+        iconPunto = self.plugin_dir+r'/icon/iconPunto.png'
+        iconLC=self.plugin_dir+'/icon/iconLC.png'
+        iconPrint = self.plugin_dir+'/icon/print.png'
+        iconPDF= self.plugin_dir+'/icon/pdf.png'
 
         self.add_action(iconPunto,text=self.tr(u'Seleccionar punto en el mapa'),callback=self.run,parent=self.iface.mainWindow())
         self.add_action(iconLC,text=self.tr(u'Ingresar lista de Puntos'),callback=self.consultaLista,parent=self.iface.mainWindow())
@@ -253,7 +253,7 @@ class coeficientesIDF:
         tret=[2,3,5,10,25,50,100]
         for i,feature in enumerate(layer.getFeatures()):
             tablaCoef=""
-            datos+='<img src="%s\\curva%i.png" alt="Smiley face" width="800">'%(self.plugin_dir+'\\static',i)
+            datos+='<img src="%s\\curva%i.png" alt="Smiley face" width="800">'%(self.plugin_dir+r'/static',i)
             for j, att in enumerate(feature.attributes()[2:]):
                 tablaCoef+='<tr>'+('<td>%s</td>'*4)%tuple([str(tret[j])]+att.split(","))+'</tr>'
             datosCalculo,cantEsta,distMax,potencia=self.layer.datosCalculo[i]
@@ -311,8 +311,8 @@ class coeficientesIDF:
             QMessageBox.information(None,"Atención".decode("utf-8"), "No ha seleccionado ningún punto".decode("utf-8"))#self.iface.mainWindow()
     def obtenerDatos(self):
 
-        self.polColombia = QgsVectorLayer(self.plugin_dir+"\\data\\Colombia\\Colombia_wgs84.shp", "Colombia", "ogr")
-        with open(self.plugin_dir+'\\data\\estaciones.geojson') as data_file:
+        self.polColombia = QgsVectorLayer(self.plugin_dir+r"/data/Colombia/Colombia_wgs84.shp", "Colombia", "ogr")
+        with open(self.plugin_dir+r'/data/estaciones.geojson') as data_file:
             self.geojson = json.load(data_file)
 
     def crearPDF(self):
