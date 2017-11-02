@@ -89,7 +89,7 @@ def graficas(ident,valores):
     ax.minorticks_on()
 
     box = ax.get_position()
-    ax.set_position([box.x0, box.y0, box.width * 0.9, box.height])
+    ax.set_position([box.x0, box.y0, box.width * 0.85, box.height])
 
     x = np.linspace(15, 360)
 
