@@ -253,7 +253,7 @@ class coeficientesIDF:
         tret=[2,3,5,10,25,50,100]
         for i,feature in enumerate(layer.getFeatures()):
             tablaCoef=""
-            datos+='<img src="%s\\curva%i.png" alt="Smiley face" width="800">'%(self.plugin_dir+r'/static',i)
+            datos+='<img src="%s/curva%i.png" alt="Smiley face" width="800">'%(self.plugin_dir+r'/static',i)
             for j, att in enumerate(feature.attributes()[2:]):
                 tablaCoef+='<tr>'+('<td>%s</td>'*4)%tuple([str(tret[j])]+att.split(","))+'</tr>'
             datosCalculo,cantEsta,distMax,potencia=self.layer.datosCalculo[i]
@@ -294,11 +294,11 @@ class coeficientesIDF:
             #<div class="footer">paginas: <span class="pagenum"></span></div>stile,str(dt.datetime.now().date()),tabla,type(attrs)
 
         #baseUrl = QUrl.fromLocalFile(os.path.join(self.plugin_dir+"/static", "css"))
-
-        self.editor.setHtml(tempHtml)
-        """
         with open(self.plugin_dir+"/static/reporte.html","w")as fileHtml:
             fileHtml.write(tempHtml.encode("utf-8"))
+        self.editor.setHtml(tempHtml)
+        """
+
         """
     def printResultado(self):
         if self.layer.have_layer!= False and int(self.layer.provider.featureCount())>0:
