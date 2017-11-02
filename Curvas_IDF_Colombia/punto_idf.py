@@ -403,14 +403,14 @@ class coeficientesIDF:
 
                 if self.dlg1.ent_Distancia.isEnabled():
                     try:
-                        distMax=float(self.dlg1.ent_Distancia.text())*1000
+                        distMax=float(str(self.dlg1.ent_Distancia.text()).replace(",","."))*1000
 
                     except:
                         ok = False
                         QMessageBox.information(self.iface.mainWindow(),"Alerta", "La distancia especificada no es valida".decode("utf-8"))
 
                 try:
-                    potencia=float(self.dlg1.ent_Pot.text())
+                    potencia=float(str(self.dlg1.ent_Pot.text()).replace(",","."))
 
                 except:
                     ok = False
@@ -454,7 +454,7 @@ class coeficientesIDF:
                         self.consultaLista()
                 if self.dlg2.ent_Distancia.isEnabled():
                     try:
-                        distMax=float(self.dlg2.ent_Distancia.text())*1000
+                        distMax=float(str(self.dlg2.ent_Distancia.text()).replace(",","."))*1000
 
                     except:
                         ok = False
@@ -462,7 +462,7 @@ class coeficientesIDF:
                         self.consultaLista()
 
                 try:
-                    potencia=float(self.dlg2.ent_Pot.text())
+                    potencia=float(str(self.dlg2.ent_Pot.text()).replace(",","."))
 
                 except:
                     ok = False
