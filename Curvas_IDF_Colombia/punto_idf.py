@@ -20,7 +20,7 @@ from PyQt4.QtCore import * #QSettings, QTranslator, qVersion, QCoreApplication
 from PyQt4.QtGui import * #QAction, QIcon
 from PyQt4.QtSql import *
 from PyQt4.QtWebKit import *
-
+import subprocess
 from qgis.core import *
 from qgis.gui import  *
 
@@ -31,6 +31,7 @@ import datetime as dt
 import os.path,json
 import numpy as np
 from scipy.optimize import leastsq
+import scipy as sp
 
 class coeficientesIDF:
     """QGIS Plugin Implementation."""
@@ -171,14 +172,16 @@ class coeficientesIDF:
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
         result = QObject.connect(self.captureCoor, SIGNAL("canvasClicked(const QgsPoint &, Qt::MouseButton)"), self.consultaPuntual)
         iconPunto = self.plugin_dir+r'/icon/iconPunto.png'
-        iconLC=self.plugin_dir+'/icon/iconLC.png'
-        iconPrint = self.plugin_dir+'/icon/print.png'
-        iconPDF= self.plugin_dir+'/icon/pdf.png'
+        iconLC=self.plugin_dir+r'/icon/iconLC.png'
+        iconPrint = self.plugin_dir+r'/icon/print.png'
+        iconPDF= self.plugin_dir+r'/icon/pdf.png'
+        iconAyuda= self.plugin_dir+r'/icon/ayuda.png'
 
         self.add_action(iconPunto,text=self.tr(u'Seleccionar punto en el mapa'),callback=self.run,parent=self.iface.mainWindow())
         self.add_action(iconLC,text=self.tr(u'Ingresar lista de Puntos'),callback=self.consultaLista,parent=self.iface.mainWindow())
         self.add_action(iconPrint,text=self.tr(u'Imprimir resultados'),callback=self.printResultado,parent=self.iface.mainWindow())
-        self.add_action(iconPDF,text=self.tr(u'Crear Archivo PDF'),callback=self.crearPDF,parent=self.iface.mainWindow())
+        self.add_action(iconPDF,text=self.tr(u'Crear archivo PDF'),callback=self.crearPDF,parent=self.iface.mainWindow())
+        self.add_action(iconAyuda,text=self.tr(u'Abrir manual de usuario'),callback=self.ayuda,parent=self.iface.mainWindow())
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -208,7 +211,12 @@ class coeficientesIDF:
             #QMessageBox.information(self.iface.mainWindow(),"Memory Provider", "No provider yet")
 
         self.canvas.setMapTool(self.captureCoor)
-
+    def ayuda(self):
+        filename=self.plugin_dir+r'/data/Manual_de_usuario.pdf'
+        try:
+            os.startfile(filename)
+        except AttributeError:
+            subprocess.call(['open', filename])
 
     def crearHTML(self):
 
@@ -366,9 +374,10 @@ class coeficientesIDF:
                 intesidad+=peval(self.geojson["features"][numEst]['properties'] [u'coeficientes']["tr%i"%i],D)*factores[j]
                 #print(self.geojson["features"][numEst]["properties"]["name"])
 
-            plsq = leastsq(residuals, p0, args=(intesidad,D))
+            plsq = sp.optimize.root(residuals, p0, method='lm',args=(intesidad,D))
+            #plsq[0]=leastsq(residuals, p0, args=(intesidad,D))
             #print(sum(residuals(plsq[0], intesidad, D)))
-            valores.append("%.3f,%.3f,%.3f"%tuple(plsq[0]))
+            valores.append("%.3f,%.3f,%.3f"%tuple(plsq.x))
         for numEst in idOrden:
             nombre=self.geojson["features"][numEst]["properties"]["name"]
             datosCalculo.append([nombre,distancias[numEst]])
