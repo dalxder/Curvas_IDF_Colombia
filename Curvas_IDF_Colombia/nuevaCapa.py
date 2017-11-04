@@ -101,6 +101,8 @@ def graficas(ident,valores):
     ax.legend(loc="center left", bbox_to_anchor=[1, 0.5],
                title="TR", fontsize=10)
     ax.text(0.8, 0.9,r'$I=\frac{C1}{(D+X0)^{C2}}$', ha='center', va='center', transform=ax.transAxes, fontsize=18)
+    ax.set_xlabel('Duración (minutos)'.decode("utf-8"))
+    ax.set_ylabel('Intensidad (mm)')
     fig.savefig(os.path.dirname(__file__)+r'/static/%s.png'%("curva"+str(ident-1)),fmt='png',dpi=200)
     fig=None
 def addFeatureLayer(provider,layer,point,desc,valores):
