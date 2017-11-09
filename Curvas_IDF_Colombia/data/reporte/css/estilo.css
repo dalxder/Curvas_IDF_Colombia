@@ -1,0 +1,27 @@
+@media print{
+        size:auto;
+        margin:30mm,30mm,30mm,30mm;
+       
+        tr{ page-break-inside:avoid;
+            page-break-after:auto;}
+	#noprint{display:none;
+        	}
+         h2
+                  {
+                   page-break-before: always;
+                  }
+}
+
+table { border-collapse: }
+
+tr{	page-break-inside:avoid;}
+
+table, td, th {border: 1px solid black;}
+
+div {  display: block;page-break-after:auto;}
+
+body { margin-left: 100;margin-top: 100;margin-right: 80;margin-	bottom: 100;}
+
+td {font-family: Arial, Helvetica, sans-serif;font-size: 11px; text-align: center;}
+
+th {font-family: Arial, Helvetica, sans-serif;font-size: 12px;}
