@@ -50,8 +50,12 @@ class coeficientesIDF:
         self.canvas = self.iface.mapCanvas()
 
 
+        # Ubicación de la carpeta que contiene complemplento
+        self.plugin_dir = os.path.dirname(__file__)
+
         # Visulaizador de datos en formato html
         self.editor = QWebView()
+
 
         # Herramineta para la captura de datos (coordenadas) del canvas
         self.captureCoor = QgsMapToolEmitPoint(self.canvas)
@@ -62,8 +66,7 @@ class coeficientesIDF:
         #g boolean for memory layer state
         self.layer.have_layer =False
 
-        # Ubicación de la carpeta que contiene complemplento
-        self.plugin_dir = os.path.dirname(__file__)
+
         self.obtenerDatos()
 
         # Ventana con la lista de coordenadas
@@ -77,6 +80,9 @@ class coeficientesIDF:
         #
         self.toolbar = self.iface.addToolBar(self.tr(u'&Curvas IDF Colombia'))
         self.toolbar.setObjectName(self.tr(u'&Curvas IDF Colombia'))
+
+        self.crsAPP=QgsCoordinateReferenceSystem(4326)
+
 
     # Traducción
     def tr(self, message):
@@ -169,19 +175,23 @@ class coeficientesIDF:
 
     def initGui(self):
 
-        """Create the menu entries and toolbar icons inside the QGIS GUI."""
-        result = QObject.connect(self.captureCoor, SIGNAL("canvasClicked(const QgsPoint &, Qt::MouseButton)"), self.consultaPuntual)
+        """Creación de entidades para QGIS GUI."""
+
         iconPunto = self.plugin_dir+r'/icon/iconPunto.png'
         iconLC=self.plugin_dir+r'/icon/iconLC.png'
-        iconPrint = self.plugin_dir+r'/icon/print.png'
-        iconPDF= self.plugin_dir+r'/icon/pdf.png'
+        iconVerRep= self.plugin_dir+r'/icon/visor.png'
+        iconVerNav= self.plugin_dir+r'/icon/navegador.png'
         iconAyuda= self.plugin_dir+r'/icon/ayuda.png'
 
-        self.add_action(iconPunto,text=self.tr(u'Seleccionar punto en el mapa'),callback=self.run,parent=self.iface.mainWindow())
+        self.add_action(iconPunto,text=self.tr(u'Seleccionar punto en el mapa'),callback=self.capturaCoor,parent=self.iface.mainWindow())
         self.add_action(iconLC,text=self.tr(u'Ingresar lista de Puntos'),callback=self.consultaLista,parent=self.iface.mainWindow())
-        self.add_action(iconPrint,text=self.tr(u'Imprimir resultados'),callback=self.printResultado,parent=self.iface.mainWindow())
-        self.add_action(iconPDF,text=self.tr(u'Crear archivo PDF'),callback=self.crearPDF,parent=self.iface.mainWindow())
+        self.add_action(iconVerRep,text=self.tr(u'Ver reporte de estimaciones'),callback=self.verReporte,parent=self.iface.mainWindow())
+        self.add_action(iconVerNav,text=self.tr(u'Ver en el navegador de internet'),callback=self.abrirNavegador,parent=self.iface.mainWindow())
         self.add_action(iconAyuda,text=self.tr(u'Abrir manual de usuario'),callback=self.ayuda,parent=self.iface.mainWindow())
+
+        """Eventos de captura de coordenadas y eliminacion de capas"""
+        QObject.connect(self.captureCoor, SIGNAL("canvasClicked(const QgsPoint &, Qt::MouseButton)"), self.consultaPuntual)
+        QgsMapLayerRegistry.instance().layersWillBeRemoved["QStringList"].connect(self.cerrar)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -189,27 +199,9 @@ class coeficientesIDF:
             self.iface.removePluginMenu(self.tr(u'&Curvas IDF Colombia'),action)
             self.iface.removeToolBarIcon(action)
         del self.toolbar
+        self.iface.actionPan()
 
-
-
-    def run(self):
-        newCRS = QgsCoordinateReferenceSystem(4326)
-
-        try:
-            self.canvas.mapSettings().setDestinationCrs(newCRS)
-            self.canvas.mapSettings().setProjectionsEnabled(True)
-            self.canvas.mapSettings().setCrsTransformEnabled(True)
-        except:
-            self.canvas.mapRenderer().setDestinationCrs(newCRS,refreshCoordinateTransformInfo=True,transformExtent=True)
-            self.canvas.mapRenderer().setProjectionsEnabled(True)
-            self.canvas.mapSettings().setCrsTransformEnabled(True)
-            #crsSrc = qgis.utils.iface.mapCanvas().mapRenderer().destinationCrs() # WGS 84
-
-        # Comprobar la existencia de la capa
-        if self.layer.have_layer == False:
-            self.layer.crearCapa()
-            #QMessageBox.information(self.iface.mainWindow(),"Memory Provider", "No provider yet")
-
+    def capturaCoor(self):
         self.canvas.setMapTool(self.captureCoor)
     def ayuda(self):
         filename=self.plugin_dir+r'/data/Manual_de_usuario.pdf'
@@ -217,6 +209,24 @@ class coeficientesIDF:
             os.startfile(filename)
         except AttributeError:
             subprocess.call(['open', filename])
+    def verReporte(self):
+        self.canvas.refresh()
+        if self.layer.have_layer != False:
+            self.crearHTML()
+            self.editor.show()
+        else:
+            self.editor.setHtml("No hay datos que mostrar")
+
+    def abrirNavegador(self):
+        if self.layer.have_layer != False:
+            filename=self.plugin_dir+r'/data/reporte/reporte.html'
+            try:
+                os.startfile(filename)
+            except AttributeError:
+                subprocess.call(['open', filename])
+    def cerrar(self):
+        self.canvas.refresh()
+        self.editor.close()
 
     def crearHTML(self):
 
@@ -239,7 +249,7 @@ class coeficientesIDF:
 		 </tbody>
 	   </table>""".decode("utf-8")
         tempTecnicos="""
-        	<h2>Datos técnicos</h2>
+        	<h3>Datos técnicos</h3>
         	<p>Número máximo de estaciones: %s</p>
             <p>Distancia máxima: %s km</p>
             <p>Potencia de la ponderación: %s</p>
@@ -259,8 +269,12 @@ class coeficientesIDF:
 
         datos=""
         tret=[2,3,5,10,25,50,100]
+        indice=""
         for i,feature in enumerate(layer.getFeatures()):
             tablaCoef=""
+            indice+="<li><a href='#Punto%i'>Punto %s</a></li>"%(i,feature.attributes()[1])
+            datos+="<h2 id='Punto%i'>Punto %s</h2>"%(i,feature.attributes()[1])
+
             datos+='<img src="%s/curva%i.png" alt="Smiley face" width="800">'%(self.plugin_dir+r'/static',i)
             for j, att in enumerate(feature.attributes()[2:]):
                 tablaCoef+='<tr>'+('<td>%s</td>'*4)%tuple([str(tret[j])]+att.split(","))+'</tr>'
@@ -273,28 +287,38 @@ class coeficientesIDF:
 
             datos+=tempCoef%tablaCoef
             datos+=tempTecnicos%(str(cantEsta),str(distMax),str(potencia),dataDist)
+            datos+="""<p id="noprint"><a href='#indice'>Tabla índice</a></p>""".decode("utf-8")
 
 
+        tablaIndice="""
+        <lo>
+        %s
+        </lo
 
+        """%indice
 
-        style="""table {border-collapse: collapse;}
-                    table, td, th {border: 2px solid black;}
-                  div {display: block;page-break-after:auto;}
-                  body {margin-left: 80;margin-top: 100;margin-right: 80;margin-bottom: 100;}
-                td {font-family: Arial, Helvetica, sans-serif;font-size: 11px; text-align: center;}
-                th {font-family: Arial, Helvetica, sans-serif;font-size: 12px;}"""
         tempHtml="""<!DOCTYPE html>
             <html>
             <head>
             	<title>Curvas intensidad, duración y frecuencia Colombia</title>
             	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-                <style>%s</style>
+                <link rel="stylesheet" type="text/css" href="css/estilo.css">
+                <style type="text/css" media="print">
+                  h2
+                  {
+                   page-break-before: always;
+                  }
+                </style>
             </head>
             <body>
                 <h1>Reporte curvas IDF</h1>
-                %s
+                <p>Reporte de resultados estimación curvas IDF para puntos en el territorio colombiano</p>
+                <p>Total de estaciones del IDEAM con curvas IDF: 108 </p>
+                <p>Sistema de referencia de coordenadas WGS-84 EPSG: 4326 </p>
+                <h1 id='indice' >Índice</h1>
+                %s %s
             </body>
-            </html>""".decode('utf-8')%(style,datos)
+            </html>""".decode('utf-8')%(indice,datos)
 
 
 
@@ -302,9 +326,12 @@ class coeficientesIDF:
             #<div class="footer">paginas: <span class="pagenum"></span></div>stile,str(dt.datetime.now().date()),tabla,type(attrs)
 
         #baseUrl = QUrl.fromLocalFile(os.path.join(self.plugin_dir+"/static", "css"))
-        with open(self.plugin_dir+"/static/reporte.html","w")as fileHtml:
+        with open(self.plugin_dir+"/data/reporte/reporte.html","w")as fileHtml:
             fileHtml.write(tempHtml.encode("utf-8"))
-        self.editor.setHtml(tempHtml)
+        #self.editor.setHtml(tempHtml)
+        self.editor.load(QUrl(self.plugin_dir+r'/data/reporte/reporte.html'))
+        self.editor.settings().setUserStyleSheetUrl(QUrl.fromLocalFile(self.plugin_dir + r"/data/reporte/css/estilo.css"))
+
         """
 
         """
@@ -313,7 +340,7 @@ class coeficientesIDF:
             self.crearHTML()
             dialog = QPrintPreviewDialog()
             dialog.paintRequested.connect(self.editor.print_)#
-            dialog.paintRequested.connect(self.editor.print_)
+            #dialog.paintRequested.connect(self.editor.print_)
             dialog.exec_()
         else:
             QMessageBox.information(None,"Atención".decode("utf-8"), "No ha seleccionado ningún punto".decode("utf-8"))#self.iface.mainWindow()
@@ -337,7 +364,7 @@ class coeficientesIDF:
                 printer.setOutputFileName(r"%s"%ePath)
                 self.editor.print_(printer)
         else:
-            QMessageBox.information(None,"Atención".decode("utf-8"), "No ha seleccionado ningún punto")
+            QMessageBox.information(None,"Atención".decode("utf-8"), "No ha seleccionado ningún punto".decode("utf-8"))
 
     def calCoeficientes(self,punto,cantEsta,distMax,potencia):
         datosCalculo=[]
@@ -386,6 +413,10 @@ class coeficientesIDF:
 
 
     def consultaPuntual(self, punto,boton):
+        scrMap= self.canvas.mapRenderer().destinationCrs()
+        punto=QgsCoordinateTransform(scrMap,self.crsAPP).transform(punto)
+
+
         # por definir
         # Comprobar la existencia de la capa
         if self.layer.have_layer == False:
@@ -430,12 +461,13 @@ class coeficientesIDF:
                     if len(valores)>0:
                         self.layer.datosCalculo.append([datosCalculo,cantEsta,distMax,potencia])
                         addFeatureLayer(self.layer.provider,self.layer.pinLayer,punto,desc,valores)
+                    self.crearHTML()
 
         else:
             QMessageBox.information(self.iface.mainWindow(),"Fuera del territorio Colombiano", """Lo sentimos esta aplicacion solamente es valida
             dentro del territorio colombiano""")
-            print("fuera de col")
             #self.canvas.refresh()
+
 
     def consultaLista(self):
         cantEsta=None
