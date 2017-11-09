@@ -205,10 +205,15 @@ class coeficientesIDF:
         self.canvas.setMapTool(self.captureCoor)
     def ayuda(self):
         filename=self.plugin_dir+r'/data/Manual_de_usuario.pdf'
+
         try:
             os.startfile(filename)
-        except AttributeError:
-            subprocess.call(['open', filename])
+        except:
+            try:
+                os.system(filename)
+            except AttributeError:
+                subprocess.call(['open', filename])
+
     def verReporte(self):
         self.canvas.refresh()
         if self.layer.have_layer != False:
@@ -222,8 +227,11 @@ class coeficientesIDF:
             filename=self.plugin_dir+r'/data/reporte/reporte.html'
             try:
                 os.startfile(filename)
-            except AttributeError:
-                subprocess.call(['open', filename])
+            except:
+                try:
+                    os.system(filename)
+                except AttributeError:
+                    subprocess.call(['open', filename])
     def cerrar(self):
         self.canvas.refresh()
         self.editor.close()
