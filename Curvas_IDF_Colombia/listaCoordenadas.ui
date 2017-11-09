@@ -17,6 +17,20 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Ingrese las coordenadas separadas por coma, ejemplo:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>-74.08229,4.63579 para el SRC EPSG:4326</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QTextEdit" name="textCoordenadas">
        <property name="enabled">
         <bool>true</bool>
@@ -118,7 +132,11 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QLineEdit" name="lineEdit"/>
+        <widget class="QLineEdit" name="lineEdit">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QPushButton" name="buttonSRC">
